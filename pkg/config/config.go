@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/friendsofgo/errors"
 	"os"
 )
 
@@ -31,13 +32,19 @@ func (c *Config) ParseEnv() error {
 
 	c.ServerAddress = os.Getenv("SERVER_ADDRESS")
 
-	if c.Postgres.User == "" ||
-		c.Postgres.Password == "" ||
-		c.Postgres.Host == "" ||
-		c.Postgres.Port == "" ||
-		c.Postgres.DB == "" ||
-		c.ServerAddress == "" {
-		return fmt.Errorf("config field is empty: %v", c)
+	switch {
+	case c.Postgres.User == "":
+		return errors.New("Postgres.User is empty")
+	case c.Postgres.Password == "":
+		return errors.New("Postgres.Password is empty")
+	case c.Postgres.Host == "":
+		return errors.New("Postgres.Host is empty")
+	case c.Postgres.Port == "":
+		return errors.New("Postgres.Port is empty")
+	case c.Postgres.DB == "":
+		return errors.New("Postgres.DB is empty")
+	case c.ServerAddress == "":
+		return errors.New("ServerAddress is empty")
 	}
 	return nil
 }

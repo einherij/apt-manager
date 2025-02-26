@@ -2,9 +2,10 @@ package repositories
 
 import (
 	"context"
+
 	"github.com/einherij/apt-manager/models"
 	"github.com/volatiletech/null/v8"
-	"time"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 func (s *RepositoriesSuite) TestApartmentRepository() {
@@ -23,10 +24,8 @@ func (s *RepositoriesSuite) TestApartmentRepository() {
 		Floor:      null.IntFrom(4),
 		SQMeters:   null.IntFrom(30),
 	}
-	_, _ = s.psql.Exec("INSERT INTO building (id, name, address) VALUES ($1, $2, $3)",
-		building.ID, building.Name, building.Address)
-	_, _ = s.psql.Exec("INSERT INTO apartment (id, number, building_id, floor, sq_meters) VALUES ($1, $2, $3, $4, $5)",
-		apartment.ID, apartment.Number, apartment.BuildingID, apartment.Floor, apartment.SQMeters)
+	s.NoError(building.Insert(context.Background(), s.psql, boil.Infer()))
+	s.NoError(apartment.Insert(context.Background(), s.psql, boil.Infer()))
 
 	s.Run("Upsert", func() {
 		apartment.Floor = null.IntFrom(5)
@@ -53,18 +52,15 @@ func (s *RepositoriesSuite) TestApartmentRepository() {
 		apartments, err := repo.FindByBuildingID(context.Background(), testID)
 		s.NoError(err)
 		s.NotEmpty(apartments)
+		for i := range apartments {
+			s.Equal(testID, apartments[i].BuildingID.Int)
+		}
 	})
 
-	s.NoError(repo.Delete(context.Background(), testID))
+	s.Run("Delete", func() {
+		s.NoError(repo.Delete(context.Background(), testID))
+	})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, _ = s.psql.ExecContext(ctx, "DELETE FROM building WHERE id = $1", testID)
-}
-
-func (s *RepositoriesSuite) TestBuildingRepository() {
-	repo := NewBuilding(s.psql)
-	buildings, err := repo.All(context.Background())
+	_, err := building.Delete(context.Background(), s.psql)
 	s.NoError(err)
-	s.NotEmpty(buildings)
 }

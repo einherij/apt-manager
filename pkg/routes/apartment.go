@@ -3,10 +3,12 @@ package routes
 import (
 	"context"
 	"fmt"
+	"strconv"
+
+	"github.com/gofiber/fiber/v2"
+
 	"github.com/einherij/apt-manager/models"
 	"github.com/einherij/apt-manager/pkg/repositories"
-	"github.com/gofiber/fiber/v2"
-	"strconv"
 )
 
 type ApartmentRepository interface {

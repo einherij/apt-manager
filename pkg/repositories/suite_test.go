@@ -3,15 +3,14 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
-	"path"
-	"runtime"
-	"testing"
-
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/suite"
+	"path"
+	"runtime"
+	"testing"
 
 	"github.com/einherij/apt-manager/pkg/config"
 )
@@ -21,7 +20,8 @@ const testDBName = "apt_manager_test"
 type RepositoriesSuite struct {
 	suite.Suite
 
-	psql *sql.DB
+	psql     *sql.DB
+	masterDB *sql.DB
 }
 
 func TestRepositoriesSuite(t *testing.T) {
@@ -32,23 +32,30 @@ func (s *RepositoriesSuite) SetupSuite() {
 	conf := config.NewConfig()
 	s.Assert().NoError(conf.ParseEnv())
 
-	psql, err := sql.Open("postgres", conf.Postgres.PostgresConnection())
+	fmt.Println(conf.Postgres.PostgresConnection())
+	masterDB, err := sql.Open("postgres", conf.Postgres.PostgresConnection())
 	s.Assert().NoError(err)
 
-	_, err = psql.Exec("CREATE DATABASE " + testDBName)
+	_, err = masterDB.Exec("CREATE DATABASE " + testDBName)
 	s.Assert().NoError(err)
+	s.masterDB = masterDB
 
-	conf.Postgres.DB = testDBName
-	psql, err = sql.Open("postgres", conf.Postgres.PostgresConnection())
+	testPGConfig := conf.Postgres
+	testPGConfig.DB = testDBName
+	fmt.Println(testPGConfig.PostgresConnection())
+	psql, err := sql.Open("postgres", testPGConfig.PostgresConnection())
 	s.Assert().NoError(err)
 
 	m, err := migrate.New(
 		fmt.Sprintf("file://%s/migrations", GetProjectRootPath()),
-		conf.Postgres.PostgresConnection(),
+		testPGConfig.PostgresConnection(),
 	)
 	s.Assert().NoError(err)
 	err = m.Up()
 	s.Assert().NoError(err)
+	srcErr, dbErr := m.Close()
+	s.Assert().NoError(srcErr)
+	s.Assert().NoError(dbErr)
 
 	s.psql = psql
 }
@@ -56,11 +63,7 @@ func (s *RepositoriesSuite) SetupSuite() {
 func (s *RepositoriesSuite) TearDownSuite() {
 	s.Assert().NoError(s.psql.Close())
 
-	conf := config.NewConfig()
-	s.Assert().NoError(conf.ParseEnv())
-	psql, err := sql.Open("postgres", conf.Postgres.PostgresConnection())
-	s.Assert().NoError(err)
-	_, err = psql.Exec("DROP DATABASE " + testDBName)
+	_, err := s.masterDB.Exec("DROP DATABASE " + testDBName)
 	s.Assert().NoError(err)
 }
 

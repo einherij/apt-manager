@@ -41,22 +41,9 @@ func main() {
 
 	buildingHandler := routes.NewBuildingHandler(buildingRepository)
 	apartmentHandler := routes.NewApartmentHandler(apartmentRepository)
-	registerRoutes(app, buildingHandler, apartmentHandler)
+	routes.RegisterRoutes(app, buildingHandler, apartmentHandler)
 
 	log.Fatal(app.Listen(conf.ServerAddress))
-}
-
-func registerRoutes(app *fiber.App, buildingHandler *routes.BuildingHandler, apartmentHandler *routes.ApartmentHandler) {
-	app.Get("/apartments", apartmentHandler.All)
-	app.Get("/apartments/:id", apartmentHandler.Find)
-	app.Get("/apartments/building/:buildingId", apartmentHandler.FindByBuildingID)
-	app.Post("/apartments", apartmentHandler.Upsert)
-	app.Delete("/apartments/:id", apartmentHandler.Delete)
-
-	app.Get("/buildings", buildingHandler.All)
-	app.Get("/buildings/:id", buildingHandler.Find)
-	app.Post("/buildings", buildingHandler.Upsert)
-	app.Delete("/buildings/:id", buildingHandler.Delete)
 }
 
 func Must[T any](v T, err error) T {
