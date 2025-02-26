@@ -43,7 +43,6 @@ func main() {
 	apartmentHandler := routes.NewApartmentHandler(apartmentRepository)
 	registerRoutes(app, buildingHandler, apartmentHandler)
 
-	err = app.Listen(conf.ServerAddress)
 	log.Fatal(app.Listen(conf.ServerAddress))
 }
 
