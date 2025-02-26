@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: apt-manager-user
+      POSTGRES_PASSWORD: pg-pass
+      POSTGRES_DB: apt-manager
+    ports:
+      - "5433:5432"

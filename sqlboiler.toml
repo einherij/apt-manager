@@ -1,0 +1,8 @@
+[psql]
+dbname = "apt-manager"
+host = "localhost"
+port = 5433
+user = "apt-manager-user"
+pass = "pg-pass"
+sslmode = "disable"
+blacklist = ["migrations"]
