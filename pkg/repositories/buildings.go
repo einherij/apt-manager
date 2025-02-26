@@ -13,18 +13,14 @@ type Building struct {
 	psql *sql.DB
 }
 
-func New(psql *sql.DB) *Building {
+func NewBuilding(psql *sql.DB) *Building {
 	return &Building{
 		psql: psql,
 	}
 }
 
 func (r *Building) All(ctx context.Context) (models.BuildingSlice, error) {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error starting transaction: %w", err)
-	}
-	all, err := models.Buildings().All(ctx, tx)
+	all, err := models.Buildings().All(ctx, r.psql)
 	if err != nil {
 		return nil, fmt.Errorf("error getting buildings: %w", err)
 	}
@@ -32,11 +28,7 @@ func (r *Building) All(ctx context.Context) (models.BuildingSlice, error) {
 }
 
 func (r *Building) Find(ctx context.Context, id int) (*models.Building, error) {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, fmt.Errorf("error starting transaction: %w", err)
-	}
-	building, err := models.FindBuilding(ctx, tx, id)
+	building, err := models.FindBuilding(ctx, r.psql, id)
 	if err != nil {
 		return nil, fmt.Errorf("error getting building: %w", err)
 	}
