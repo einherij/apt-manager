@@ -27,6 +27,9 @@ func main() {
 	if !errors.Is(err, migrate.ErrNoChange) {
 		PanicOnError(err)
 	}
+	srcErr, dbErr := m.Close()
+	PanicOnError(srcErr)
+	PanicOnError(dbErr)
 
 	psql := Must(sql.Open("postgres", conf.Postgres.PostgresConnection()))
 	defer func() {
