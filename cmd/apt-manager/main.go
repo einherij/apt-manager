@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/friendsofgo/errors"
 	"github.com/gofiber/fiber/v2"
@@ -46,7 +49,17 @@ func main() {
 	apartmentHandler := routes.NewApartmentHandler(apartmentRepository)
 	routes.RegisterRoutes(app, buildingHandler, apartmentHandler)
 
-	log.Fatal(app.Listen(conf.ServerAddress))
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer cancel()
+	go func() {
+		if err := app.Listen(conf.ServerAddress); err != nil {
+			log.Printf("error server listener: %v", err)
+		}
+	}()
+	<-ctx.Done()
+	if err := app.Shutdown(); err != nil {
+		log.Printf("error server shutdown: %v", err)
+	}
 }
 
 func Must[T any](v T, err error) T {
