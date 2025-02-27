@@ -27,6 +27,7 @@ type Building struct {
 	ID      int         `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Name    null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
 	Address null.String `boil:"address" json:"address,omitempty" toml:"address" yaml:"address,omitempty"`
+	Owner   null.String `boil:"owner" json:"owner,omitempty" toml:"owner" yaml:"owner,omitempty"`
 
 	R *buildingR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L buildingL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -36,20 +37,24 @@ var BuildingColumns = struct {
 	ID      string
 	Name    string
 	Address string
+	Owner   string
 }{
 	ID:      "id",
 	Name:    "name",
 	Address: "address",
+	Owner:   "owner",
 }
 
 var BuildingTableColumns = struct {
 	ID      string
 	Name    string
 	Address string
+	Owner   string
 }{
 	ID:      "building.id",
 	Name:    "building.name",
 	Address: "building.address",
+	Owner:   "building.owner",
 }
 
 // Generated where
@@ -58,10 +63,12 @@ var BuildingWhere = struct {
 	ID      whereHelperint
 	Name    whereHelpernull_String
 	Address whereHelpernull_String
+	Owner   whereHelpernull_String
 }{
 	ID:      whereHelperint{field: "\"building\".\"id\""},
 	Name:    whereHelpernull_String{field: "\"building\".\"name\""},
 	Address: whereHelpernull_String{field: "\"building\".\"address\""},
+	Owner:   whereHelpernull_String{field: "\"building\".\"owner\""},
 }
 
 // BuildingRels is where relationship names are stored.
@@ -92,9 +99,9 @@ func (r *buildingR) GetApartments() ApartmentSlice {
 type buildingL struct{}
 
 var (
-	buildingAllColumns            = []string{"id", "name", "address"}
+	buildingAllColumns            = []string{"id", "name", "address", "owner"}
 	buildingColumnsWithoutDefault = []string{}
-	buildingColumnsWithDefault    = []string{"id", "name", "address"}
+	buildingColumnsWithDefault    = []string{"id", "name", "address", "owner"}
 	buildingPrimaryKeyColumns     = []string{"id"}
 	buildingGeneratedColumns      = []string{}
 )

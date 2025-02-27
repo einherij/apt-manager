@@ -48,13 +48,9 @@ func (r *Apartment) FindByBuildingID(ctx context.Context, buildingID int) (model
 }
 
 func (r *Apartment) Upsert(ctx context.Context, apartment *models.Apartment) error {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	err = apartment.Upsert(
+	err := apartment.Upsert(
 		ctx,
-		tx,
+		r.psql,
 		true,
 		[]string{"id"},
 		boil.Blacklist("id"),
@@ -63,31 +59,18 @@ func (r *Apartment) Upsert(ctx context.Context, apartment *models.Apartment) err
 	if err != nil {
 		return fmt.Errorf("error upserting apartment: %w", err)
 	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
-	}
 	return nil
 }
 
 func (r *Apartment) Delete(ctx context.Context, id int) error {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-
-	apartment, err := models.FindApartment(ctx, tx, id)
+	apartment, err := models.FindApartment(ctx, r.psql, id)
 	if err != nil {
 		return fmt.Errorf("error getting apartment: %w", err)
 	}
 
-	_, err = apartment.Delete(ctx, tx)
+	_, err = apartment.Delete(ctx, r.psql)
 	if err != nil {
 		return fmt.Errorf("error deleting apartment: %w", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
 	}
 	return nil
 }

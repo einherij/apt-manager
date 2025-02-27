@@ -896,7 +896,7 @@ func testBuildingsSelect(t *testing.T) {
 }
 
 var (
-	buildingDBTypes = map[string]string{`ID`: `integer`, `Name`: `text`, `Address`: `text`}
+	buildingDBTypes = map[string]string{`ID`: `integer`, `Name`: `text`, `Address`: `text`, `Owner`: `text`}
 	_               = bytes.MinRead
 )
 

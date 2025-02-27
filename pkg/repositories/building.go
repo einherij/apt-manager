@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+
 	"github.com/einherij/apt-manager/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
@@ -20,7 +22,7 @@ func NewBuilding(psql *sql.DB) *Building {
 }
 
 func (r *Building) All(ctx context.Context) (models.BuildingSlice, error) {
-	all, err := models.Buildings().All(ctx, r.psql)
+	all, err := models.Buildings(qm.Load(models.BuildingRels.Apartments)).All(ctx, r.psql)
 	if err != nil {
 		return nil, fmt.Errorf("error getting buildings: %w", err)
 	}
@@ -36,13 +38,9 @@ func (r *Building) Find(ctx context.Context, id int) (*models.Building, error) {
 }
 
 func (r *Building) Upsert(ctx context.Context, building *models.Building) error {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	err = building.Upsert(
+	err := building.Upsert(
 		ctx,
-		tx,
+		r.psql,
 		true,
 		[]string{"id"},
 		boil.Blacklist("id"),
@@ -51,29 +49,17 @@ func (r *Building) Upsert(ctx context.Context, building *models.Building) error 
 	if err != nil {
 		return fmt.Errorf("error upserting building: %w", err)
 	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
-	}
 	return nil
 }
 
 func (r *Building) Delete(ctx context.Context, id int) error {
-	tx, err := r.psql.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("error starting transaction: %w", err)
-	}
-	building, err := models.FindBuilding(ctx, tx, id)
+	building, err := models.FindBuilding(ctx, r.psql, id)
 	if err != nil {
 		return fmt.Errorf("error getting building: %w", err)
 	}
-	_, err = building.Delete(ctx, tx)
+	_, err = building.Delete(ctx, r.psql)
 	if err != nil {
 		return fmt.Errorf("error deleting building: %w", err)
-	}
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("error committing transaction: %w", err)
 	}
 	return nil
 }
